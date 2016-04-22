@@ -1,0 +1,37 @@
+<div ng-controller="DashboardController">
+
+	<div id="dash_left">
+		<input type="text" placeholder="search..." ng-model="search_filter">
+	</div>
+
+	<div id="dash_right">
+		
+		<div class="dash_section">
+			<h4>Products</h4>
+			<div class="product_box" ng-repeat="product in products | limitTo: products_limit | filter: search_filter">
+				<img src="{{ product.image_url }}">
+				<h4>{{product.product_name}}</h4>
+				<p>({{product.quantity_remaining}} left)</p>									
+			</div>
+			<a href="" ng-click="products_limit = products_limit + 3">Show more...</a>
+		</div>
+
+		<div class="dash_section">
+			<h4>Recent Orders</h4>
+			<ul>
+				<li ng-repeat="order in orders | orderBy: '-order_date' | limitTo: orders_limit | filter: search_filter" > {{ order.customer_name }} purchased {{ order.quantity}} {{order.product_name}} (<time am-time-ago="order.order_date"></time>)</li>
+			</ul>
+			<a href="" ng-click="orders_limit = orders_limit + 3">Show more...</a>
+		</div>
+
+		<div class="dash_section">
+			<h4>New Customers</h4>
+			<ul>
+				<li ng-repeat="customer in customers | orderBy: '-created_date' | limitTo: customers_limit | filter: search_filter"> {{ customer.name }} joined the store <time am-time-ago="customer.created_date"></time> </li>
+			</ul>
+			<a href="" ng-click="customers_limit = customers_limit + 3">Show more...</a>			
+		</div>
+
+	</div>
+
+</div>

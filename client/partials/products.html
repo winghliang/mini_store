@@ -1,0 +1,30 @@
+<div ng-controller="ProductsController">
+
+	<div id="products_left">
+		<input type="text" placeholder="search..." ng-model="search_filter">
+
+		<h4 id="add_products_heading">Add a new product</h4>
+
+		<form>
+			Name: <input class="add_product_row" type="text" placeholder="name..." ng-model="newProduct.product_name">
+			Image (url): <input class="add_product_row" type="text" placeholder="http://" ng-model="newProduct.image_url">
+			Description: <textarea class="add_product_row" rows="8" cols="20" ng-model="newProduct.description"></textarea>
+			Initial Quantity: <input class="add_product_row" type="number" min="1" step="1" ng-model="newProduct.initial_quantity">
+		</form>
+
+		<button class="send_button" ng-click="addProduct()">Create</button>
+
+	</div>
+
+	<div id="products_right">
+		
+		<div class="product_box" ng-repeat="product in products | filter: search_filter">
+			<img src="{{ product.image_url }}">
+			<h4>{{product.product_name}}</h4>
+			<p>({{product.quantity_remaining}} left)</p>
+									
+		</div>
+
+	</div>
+
+</div>

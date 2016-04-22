@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html ng-app="myApp">
+<head>
+	<title>Orders and Customers</title>
+    <link rel="stylesheet" type="text/css" href="/css/styles.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular-route.min.js"></script>
+
+    <!-- angular moment -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/angular-moment/0.9.0/angular-moment.min.js"></script>
+
+    <script type="text/javascript">
+    	var myApp = angular.module('myApp', ['ngRoute', 'angularMoment']);
+
+    	myApp.config(function($routeProvider){
+    		$routeProvider
+    			.when('/', {
+    				templateUrl: 'partials/dashboard.html'
+    			})
+    			.when('/orders', {
+    				templateUrl: 'partials/orders.html'
+    			})
+                .when('/products', {
+                    templateUrl: 'partials/products.html'
+                })
+                .when('/customers', {
+                    templateUrl: 'partials/customers.html'
+                })
+    			.otherwise({
+    				redirectTo: '/'
+    			});
+    	})
+
+    	myApp.factory('CustomerFactory', function($http){
+    		var factory = {};
+    		var customers = [];
+
+    		factory.index = function(callback){
+    			$http.get('/customers').success(function(output){
+    				customers = output;
+    				callback(customers);
+    			})
+    		}
+
+    		factory.create = function(newCustomer, callback){
+    			$http.post('/customers', newCustomer).success(function(output){
+    				customers = output;
+    				callback(customers);
+    			})    			
+    		}
+
+    		factory.destroy = function(customer, callback){
+    			$http.post('/customers/destroy', customer).success(function(output){
+    				customers = output;
+    				callback(customers);
+    			})
+    		}
+
+    		return factory;
+
+    	})
+
+        myApp.factory('OrderFactory', function($http){
+            var factory = {};
+
+            var orders = [];
+
+            factory.index = function(callback){
+                $http.get('/orders').success(function(output){
+                    orders = output;
+                    callback(orders);
+                })
+            }
+
+            factory.create = function(new_order, callback){
+                $http.post('/orders', new_order).success(function(output){
+                    orders = output;
+                    callback(orders);
+                })
+            }
+
+            return factory;
+        })
+
+        myApp.factory('ProductFactory', function($http){
+            var factory = {};
+
+            var products = [];
+
+            factory.index = function(callback){
+                console.log('getting all products')
+                $http.get('/products').success(function(output){
+                    products = output;
+                    callback(products);
+                })
+            }
+
+            factory.create = function(newProduct, callback){
+                $http.post('/products', newProduct).success(function(output){
+                    console.log('item added.  all items are now:', output)
+                    products = output;
+                    callback(products);
+                })
+            }
+
+            return factory;
+
+        })
+
+    	myApp.controller('CustomersController', function($scope, CustomerFactory){
+    		$scope.customers = [];
+
+            $scope.duplicate = false;
+
+            $scope.message = "";
+
+            isDuplicate = function(name){
+                for (var i = 0; i < $scope.customers.length; i ++){
+                    if ($scope.customers[i].name == name) {
+                        $scope.message = "The name you entered is a duplicate! Please enter another name."
+                        return true;          
+                    }
+                }
+                return false;
+            }
+
+    		CustomerFactory.index(function(data){
+    			$scope.customers = data;
+    		});
+
+    		$scope.addCustomer = function(){
+                if (isDuplicate($scope.newCustomer.name)){
+                    $scope.duplicate = true;
+                } else {
+                    CustomerFactory.create($scope.newCustomer, function(data){
+                        $scope.customers = data;
+                        $scope.newCustomer = {};
+                        $scope.duplicate = false;
+                        $scope.message = "";
+                    });
+                }
+    		}
+
+    		$scope.removeCustomer = function(customer){
+    			CustomerFactory.destroy(customer, function(data){
+    				$scope.customers = data;
+    			})
+    		}
+
+    	})
+
+        myApp.controller('OrdersController', function($scope, OrderFactory, CustomerFactory, ProductFactory){
+            $scope.orders = [];
+
+            $scope.customers = [];
+
+            $scope.products = [];
+
+            CustomerFactory.index(function(data){
+                $scope.customers = data;
+            });
+
+            OrderFactory.index(function(data){
+                $scope.orders = data;
+            });
+
+            ProductFactory.index(function(data){
+                $scope.products = data;
+            })
+
+            $scope.addOrder = function(){
+                OrderFactory.create($scope.new_order, function(data){
+                    $scope.orders = data;
+                    $scope.new_order = {};
+                });
+            }
+
+        })
+
+        myApp.controller('ProductsController', function($scope, ProductFactory){
+            $scope.products = [];
+
+            ProductFactory.index(function(data){
+                $scope.products = data;
+            });
+
+            $scope.addProduct = function(){
+                ProductFactory.create($scope.newProduct, function(data){
+                    console.log('back in products controller.  adding these to scope:', data);
+                    $scope.products = data;
+                    console.log('product scope now contains:', $scope.products)
+                    $scope.newProduct = {};
+                })
+            }
+        })
+
+        myApp.controller('DashboardController', function($scope, ProductFactory, OrderFactory, CustomerFactory){
+            $scope.products = [];
+            $scope.custumers = [];
+            $scope.orders = [];
+            $scope.products_limit = 3;
+            $scope.customers_limit = 3;
+            $scope.orders_limit = 3;
+
+            ProductFactory.index(function(data){
+                $scope.products = data;
+            });
+
+            CustomerFactory.index(function(data){
+                $scope.customers = data;
+            });
+
+            OrderFactory.index(function(data){
+                $scope.orders = data;
+            });
+
+        })
+
+
+    </script>
+
+
+</head>
+<body>
+    <div id="wrapper">
+        <div id="header">
+        	<a href="#/">Dashboard</a> | <a href="#/products">Products</a> | <a href="#/orders">Orders</a> | <a href="#/customers">Customers</a> | <a href="#/">Settings</a> 
+        </div>
+
+    	<div ng-view = "">
+    	</div>
+    </div>
+</body>
+</html>
